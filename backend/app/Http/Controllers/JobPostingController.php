@@ -74,4 +74,16 @@ class JobPostingController extends Controller
 
         return response()->json($jobs);
     }
+
+    /**
+     * Public endpoint to show a specific job.
+     */
+    public function publicShow(string $id): JsonResponse
+    {
+        $job = JobPosting::with('tenant')
+            ->where('status', 'active')
+            ->findOrFail($id);
+
+        return response()->json($job);
+    }
 }

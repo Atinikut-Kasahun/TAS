@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, API_URL } from '@/lib/api';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
@@ -28,19 +28,22 @@ function CareersContent() {
     const [formData, setFormData] = useState({
         email: '',
         name: '',
+        phone: '',
         age: '',
         gender: '',
         professional_background: '',
         years_of_experience: '',
+        portfolio_link: '',
     });
     const [resume, setResume] = useState<File | null>(null);
+    const [photo, setPhoto] = useState<File | null>(null);
     const [attachments, setAttachments] = useState<File[]>([]);
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         const fetchJobs = async () => {
             try {
-                const data = await apiFetch('/v1/jobs');
+                const data = await apiFetch('/v1/public/jobs');
                 const jobList = data || [];
                 setJobs(jobList);
 
@@ -106,16 +109,20 @@ function CareersContent() {
             body.append('job_posting_id', selectedJob.id.toString());
             body.append('name', formData.name);
             body.append('email', formData.email);
+            body.append('phone', formData.phone);
             body.append('age', formData.age);
             body.append('gender', formData.gender);
             body.append('professional_background', formData.professional_background);
             body.append('years_of_experience', formData.years_of_experience);
+            body.append('portfolio_link', formData.portfolio_link);
             body.append('resume', resume);
+            if (photo) body.append('photo', photo);
             attachments.forEach((file, i) => {
                 body.append(`attachments[${i}]`, file);
             });
 
-            const res = await fetch('http://127.0.0.1:8000/api/v1/apply', {
+            const cleanBaseUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+            const res = await fetch(`${cleanBaseUrl}/v1/apply`, {
                 method: 'POST',
                 body: body,
             });
@@ -294,12 +301,40 @@ function CareersContent() {
                                             <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Profile Details</h3>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="col-span-2">
+                                                    <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Photo Upload</label>
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-20 h-20 bg-gray-50 border-2 border-dashed border-gray-100 rounded-2xl flex items-center justify-center overflow-hidden">
+                                                            {photo ? (
+                                                                <img src={URL.createObjectURL(photo)} alt="Profile" className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <svg className="w-8 h-8 text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" /></svg>
+                                                            )}
+                                                        </div>
+                                                        <label className="px-4 py-2 border border-gray-100 rounded-lg text-xs font-bold text-[#1A2B3D] cursor-pointer hover:bg-gray-50 transition-colors">
+                                                            <input type="file" className="hidden" accept="image/*" onChange={(e) => setPhoto(e.target.files?.[0] || null)} />
+                                                            {photo ? 'Change Photo' : 'Upload Photo'}
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div className="col-span-2">
                                                     <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Full Name</label>
                                                     <input type="text" className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-[#1F7A6E] font-bold text-[#1A2B3D] text-sm" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                                                </div>
+                                                <div className="col-span-2">
+                                                    <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Email Address</label>
+                                                    <input type="email" className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-[#1F7A6E] font-bold text-[#1A2B3D] text-sm" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Phone Number</label>
+                                                    <input type="tel" className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-[#1F7A6E] font-bold text-[#1A2B3D] text-sm" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
                                                 </div>
                                                 <div>
                                                     <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Age</label>
                                                     <input type="number" className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-[#1F7A6E] font-bold text-[#1A2B3D] text-sm" value={formData.age} onChange={(e) => setFormData({ ...formData, age: e.target.value })} />
+                                                </div>
+                                                <div className="col-span-2">
+                                                    <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Portfolio Link</label>
+                                                    <input type="url" placeholder="https://..." className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-[#1F7A6E] font-bold text-[#1A2B3D] text-sm" value={formData.portfolio_link} onChange={(e) => setFormData({ ...formData, portfolio_link: e.target.value })} />
                                                 </div>
                                                 <div>
                                                     <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Gender</label>

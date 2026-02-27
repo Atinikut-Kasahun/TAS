@@ -21,6 +21,8 @@ class Applicant extends Model
         'professional_background',
         'years_of_experience',
         'resume_path',
+        'photo_path',
+        'portfolio_link',
         'status', // new, screening, interview, offered, hired, rejected
         'source', // website, social media, ethiojobs
         'match_score',

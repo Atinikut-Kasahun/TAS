@@ -79,6 +79,16 @@ class JobRequisitionController extends Controller
             'status' => 'pending',
         ]);
 
+        // Notify HR Managers
+        $hrManagers = \App\Models\User::where('tenant_id', $tenantId)
+            ->whereHas('roles', function ($q) {
+                $q->where('slug', 'hr_manager');
+            })->get();
+
+        foreach ($hrManagers as $hrManager) {
+            $hrManager->notify(new \App\Notifications\RequisitionApprovalAlert($requisition));
+        }
+
         return response()->json($requisition, 201);
     }
 

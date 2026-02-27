@@ -1,23 +1,51 @@
-const API_URL = "http://127.0.0.1:8000/api";
+export const API_URL = "http://localhost:8001/api";
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
 
-    const headers = {
-        "Content-Type": "application/json",
+    const headers: Record<string, string> = {
         "Accept": "application/json",
         ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-        ...options.headers,
     };
 
-    const response = await fetch(`${API_URL}${endpoint}`, {
-        ...options,
-        headers,
-    });
+    // Only set Content-Type for JSON body – not for FormData
+    if (!(options.body instanceof FormData)) {
+        headers["Content-Type"] = "application/json";
+    }
+
+    // Merge caller-provided headers
+    if (options.headers) {
+        Object.assign(headers, options.headers);
+    }
+
+    // Robust URL construction
+    const baseUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+    let response: Response;
+    try {
+        response = await fetch(`${baseUrl}${cleanEndpoint}`, {
+            ...options,
+            headers,
+        });
+    } catch (networkError) {
+        // Backend unreachable – throw a clean, user-friendly error
+        throw new Error("Unable to connect to the server. Please make sure the backend is running.");
+    }
 
     if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Something went wrong");
+        let errorMessage = `Server error ${response.status}`;
+        try {
+            const errorBody = await response.json();
+            errorMessage = errorBody.message || errorMessage;
+        } catch { /* body not JSON */ }
+        throw new Error(errorMessage);
+    }
+
+    // Some endpoints return 204 No Content
+    const contentType = response.headers.get("Content-Type") || "";
+    if (!contentType.includes("application/json")) {
+        return null;
     }
 
     return response.json();

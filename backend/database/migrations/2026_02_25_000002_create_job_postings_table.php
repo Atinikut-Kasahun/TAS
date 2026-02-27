@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
             $table->foreignId('job_requisition_id')->nullable()->constrained('job_requisitions')->onDelete('set null');
             $table->string('title');
+            $table->string('department')->nullable();
             $table->text('description');
             $table->json('requirements')->nullable();
             $table->string('location')->nullable();

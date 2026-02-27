@@ -32,8 +32,10 @@ Route::middleware('mock.auth')->group(function () {
         Route::apiResource('jobs', \App\Http\Controllers\JobController::class)->except(['index', 'show']);
 
         // Applicant Management
+        Route::get('/applicants/stats', [\App\Http\Controllers\ApplicantController::class, 'stats']);
         Route::get('/applicants', [\App\Http\Controllers\ApplicantController::class, 'index']);
         Route::patch('/applicants/{id}/status', [\App\Http\Controllers\ApplicantController::class, 'updateStatus']);
+        Route::post('/applicants/{id}/mention', [\App\Http\Controllers\ApplicantController::class, 'mention']);
 
         // Interview Management
         Route::get('/interviews', [\App\Http\Controllers\InterviewController::class, 'index']);
@@ -41,12 +43,42 @@ Route::middleware('mock.auth')->group(function () {
         Route::patch('/interviews/{id}', [\App\Http\Controllers\InterviewController::class, 'update']);
         // Offer Management
         Route::post('/offers/generate', [\App\Http\Controllers\OfferController::class, 'generate']);
+
+        // Notifications
+        Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index']);
+        Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead']);
+        Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead']);
+        Route::post('/notifications/{id}/reply', [\App\Http\Controllers\NotificationController::class, 'reply']);
+
+        // Users for mentions & compose
+        Route::get('/users', function (Request $request) {
+            return response()->json(\App\Models\User::where('tenant_id', $request->user()->tenant_id)
+                ->where('id', '!=', $request->user()->id)
+                ->get(['id', 'name', 'email']));
+        });
+
+        // Compose a free-form direct message to any colleague
+        Route::post('/messages/send', function (Request $request) {
+            $request->validate([
+                'to_user_id' => 'required|exists:users,id',
+                'message' => 'required|string|max:2000',
+            ]);
+            $recipient = \App\Models\User::where('id', $request->to_user_id)
+                ->where('tenant_id', $request->user()->tenant_id)
+                ->firstOrFail();
+            $recipient->notify(new \App\Notifications\DirectMessage(
+                $request->user()->name,
+                $request->user()->id,
+                $request->message
+            ));
+            return response()->json(['success' => true]);
+        });
     });
 });
 
 // Public API
 Route::prefix('v1')->group(function () {
-    Route::get('/jobs', [JobController::class, 'index']);
-    Route::get('/jobs/{id}', [JobController::class, 'show']);
+    Route::get('/public/jobs', [\App\Http\Controllers\JobPostingController::class, 'publicIndex']);
+    Route::get('/public/jobs/{id}', [\App\Http\Controllers\JobPostingController::class, 'publicShow']);
     Route::post('/apply', [\App\Http\Controllers\JobApplicationController::class, 'store']);
 });

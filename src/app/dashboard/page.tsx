@@ -45,7 +45,7 @@ function DashboardContent() {
         try { await apiFetch('/logout', { method: 'POST' }); } catch (_) { }
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user');
-        router.push('/login');
+        router.push('/');
     };
 
     if (!ready || !user) return <LoadingScreen />;

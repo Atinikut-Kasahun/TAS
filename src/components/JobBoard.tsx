@@ -1,17 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { API_URL } from '@/lib/api';
 
 const jobCategories = ["All Departments", "Engineering", "Design", "Product", "Operations", "Sales"];
-
-const initialJobs = [
-    { id: 1, title: "Lead Frontend Engineer", dept: "Engineering", location: "London / Remote", type: "Full-time" },
-    { id: 2, title: "Senior UI/UX Designer", dept: "Design", location: "San Francisco", type: "Full-time" },
-    { id: 3, title: "Technical Product Manager", dept: "Product", location: "New York / Remote", type: "Full-time" },
-    { id: 4, title: "DevOps Specialist", dept: "Engineering", location: "Global / Remote", type: "Contract" },
-    { id: 5, title: "Head of Operations", dept: "Operations", location: "Berlin", type: "Full-time" },
-    { id: 6, title: "Growth Sales Executive", dept: "Sales", location: "Remote", type: "Full-time" },
-];
 
 export default function JobBoard() {
     const [activeCategory, setActiveCategory] = useState("All Departments");
@@ -25,8 +17,10 @@ export default function JobBoard() {
                 // but our apiFetch handles it if available.
                 // For public view, we might need a way to specify which tenant's jobs to show,
                 // or show all. For now, let's fetch all active jobs.
-                const response = await fetch("http://localhost:8000/api/v1/jobs");
+                const response = await fetch(`${API_URL}/v1/public/jobs`);
                 const data = await response.json();
+
+                // Map backend properties (department, type, location) if they differ from initial mock usage
                 setJobs(data);
             } catch (err) {
                 console.error("Failed to fetch jobs", err);
@@ -96,7 +90,7 @@ export default function JobBoard() {
                                 <div>
                                     <div className="flex justify-between items-start mb-6">
                                         <span className="px-3 py-1 rounded-lg bg-accent/5 text-[10px] font-bold text-accent uppercase tracking-wider">
-                                            {job.dept}
+                                            {job.department}
                                         </span>
                                         <span className="text-primary/30 text-xs font-bold">{job.type}</span>
                                     </div>
