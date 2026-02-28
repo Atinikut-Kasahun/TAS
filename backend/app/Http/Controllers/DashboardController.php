@@ -30,10 +30,25 @@ class DashboardController extends Controller
     private function adminDashboard(): JsonResponse
     {
         $stats = [
-            'total_tenants' => Tenant::count(),
-            'total_jobs' => JobPosting::count(),
-            'total_applicants' => Applicant::count(),
-            'tenants_breakdown' => Tenant::withCount(['jobPostings', 'jobRequisitions', 'users'])
+            'total_tenants' => \App\Models\Tenant::count(),
+            'total_active_jobs' => \App\Models\JobPosting::where('status', 'active')->count(),
+            'total_candidates' => \App\Models\Applicant::count(),
+            'total_employees' => \App\Models\User::count(),
+            'new_applications_today' => \App\Models\Applicant::whereDate('created_at', \Carbon\Carbon::today())->count(),
+            'active_events' => \App\Models\Event::where('status', 'upcoming')
+                ->orWhere('status', 'ongoing')
+                ->count(),
+            'tenants_breakdown' => \App\Models\Tenant::withCount([
+                'jobPostings as active_jobs_count' => function ($query) {
+                    $query->where('status', 'active');
+                },
+                'jobPostings',
+                'jobRequisitions',
+                'users'
+            ])->get(),
+            'recent_global_applicants' => \App\Models\Applicant::with('tenant', 'jobPosting')
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
                 ->get(),
         ];
 

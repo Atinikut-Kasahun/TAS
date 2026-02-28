@@ -3,8 +3,11 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 
-const quickLinks = ["Open Positions", "About Us", "Life at Droga", "Blog"];
-const socials = ["in", "X", "gh"];
+const quickLinks = ["Open Positions", "About Us", "Life at Droga"];
+const socials = [
+    { id: "in", url: "https://www.linkedin.com/company/droga-pharma-pvt-ltd-co/about/" },
+    { id: "W", url: "http://www.drogapharma.com/" }
+];
 
 export default function Footer() {
     return (
@@ -38,12 +41,14 @@ export default function Footer() {
                         <div className="flex gap-3 mt-6">
                             {socials.map((s) => (
                                 <motion.a
-                                    key={s}
-                                    href="#"
+                                    key={s.id}
+                                    href={s.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     whileHover={{ scale: 1.1 }}
                                     className="w-9 h-9 bg-[#F1F5F9] rounded-full flex items-center justify-center text-[#1A1C23] text-xs font-bold hover:bg-[#1A1C23] hover:text-white transition-colors"
                                 >
-                                    {s}
+                                    {s.id}
                                 </motion.a>
                             ))}
                         </div>
@@ -56,7 +61,7 @@ export default function Footer() {
                             {quickLinks.map((link) => (
                                 <a
                                     key={link}
-                                    href="#"
+                                    href={`#${link.toLowerCase().replace("life at droga", "about-us").replace("about us", "about-us").replace("open positions", "jobs").replace(" ", "-")}`}
                                     className="text-[#64748B] text-sm hover:text-accent transition-colors"
                                 >
                                     {link}
@@ -69,12 +74,16 @@ export default function Footer() {
                     <div>
                         <h4 className="font-bold text-[#1A1C23] mb-6">Contact</h4>
                         <div className="flex flex-col gap-4 text-sm text-[#64748B]">
-                            <p>careers@drogagroup.com</p>
-                            <p>+1 (555) 123-4567</p>
+                            <a href="http://www.drogapharma.com/" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">www.drogapharma.com</a>
+                            <a href="mailto:info@drogapharma.com" className="hover:text-accent transition-colors">info@drogapharma.com</a>
+                            <a href="mailto:pharmadroga@gmail.com" className="hover:text-accent transition-colors">pharmadroga@gmail.com</a>
+                            <p>+251 91 366 7537</p>
                             <p>
-                                Droga Group HQ
+                                Addis Ketema Subcity, Woreda 06
                                 <br />
-                                Innovation District
+                                House No. 670, Pasteur Square
+                                <br />
+                                Addis Ababa, Ethiopia
                             </p>
                         </div>
                     </div>

@@ -83,7 +83,7 @@ export default function Header() {
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5, delay: i * 0.1 }}
-                                href={`#${item.toLowerCase().replace(" ", "-")}`}
+                                href={`/${item.toLowerCase() === "about us" ? "#about-us" : item.toLowerCase() === "contact" ? "#contact" : "#" + item.toLowerCase()}`}
                                 className="text-sm font-black transition-colors hover:text-[#1F7A6E] text-[#1A2B3D]"
                             >
                                 {item}
@@ -119,7 +119,7 @@ export default function Header() {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.5, delay: 0.4 }}
-                        href="#positions"
+                        href="#jobs"
                         className="bg-[#0D3B34] text-white text-[11px] font-black uppercase tracking-widest px-8 py-3.5 rounded-full hover:bg-black transition-all hover:-translate-y-px hover:shadow-lg"
                     >
                         View Open Positions →

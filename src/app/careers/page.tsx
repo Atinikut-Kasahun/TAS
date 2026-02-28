@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { apiFetch, API_URL } from '@/lib/api';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 interface Job {
     id: number;
@@ -143,31 +145,7 @@ function CareersContent() {
 
     return (
         <div className="min-h-screen bg-[#F5F6FA]">
-            {/* Guest Navbar */}
-            <nav className="bg-white border-b border-gray-100 px-8 py-5">
-                <div className="max-w-[1200px] mx-auto flex justify-between items-center">
-                    <Link href="/" className="flex flex-col group relative">
-                        <div className="flex items-center">
-                            <span className="text-[#1A2B3D] font-black text-xl tracking-tight">
-                                DROGA
-                            </span>
-                            <span className="text-[#1F7A6E] font-medium text-xl tracking-tight ml-1.5">
-                                GROUP
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-1.5 -mt-0.5">
-                            <div className="h-[0.5px] w-3 bg-[#1F7A6E]/40" />
-                            <span className="text-[7px] font-black uppercase tracking-[0.3em] text-[#1A2B3D]/60 whitespace-nowrap">
-                                Hiring Hub
-                            </span>
-                            <div className="h-[0.5px] w-full bg-[#1F7A6E]/40 flex-1" />
-                        </div>
-                    </Link>
-                    <Link href="/login" className="text-[10px] font-black uppercase tracking-widest text-[#1A2B3D]/40 hover:text-[#1F7A6E] transition-colors">
-                        Internal Login
-                    </Link>
-                </div>
-            </nav>
+            <Header />
 
             {/* Hero Section */}
             <header className="bg-white border-b border-gray-100 py-20 px-8 text-center text-[#1A2B3D]">
@@ -421,10 +399,8 @@ function CareersContent() {
                 )}
             </AnimatePresence>
 
-            {/* Footer */}
-            <footer className="py-20 text-center border-t border-gray-100 bg-white mt-10">
-                <p className="text-[11px] font-black text-gray-300 uppercase tracking-widest">© 2026 DROGA GROUP — ALL RIGHTS RESERVED</p>
-            </footer>
+            {/* Modal & Other Content Above ... */}
+            <Footer />
         </div>
     );
 }

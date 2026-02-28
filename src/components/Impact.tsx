@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 
-export default function Impact() {
+export default function Impact({ settings }: { settings?: any }) {
     return (
         <motion.section
             initial={{ opacity: 0 }}

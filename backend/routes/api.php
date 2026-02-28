@@ -13,12 +13,10 @@ Route::middleware('mock.auth')->group(function () {
         return $request->user()->load('tenant', 'roles');
     });
 
-    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index']);
-
-    Route::post('/logout', [\App\Http\Controllers\AuthController::class, 'logout']);
-
     // Requisition API
     Route::prefix('v1')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index']);
+        Route::post('/logout', [\App\Http\Controllers\AuthController::class, 'logout']);
         Route::get('/requisitions', [\App\Http\Controllers\JobRequisitionController::class, 'index']);
         Route::post('/requisitions', [\App\Http\Controllers\JobRequisitionController::class, 'store']);
         Route::post('/requisitions/bulk-approve', [\App\Http\Controllers\JobRequisitionController::class, 'bulkApprove']);
@@ -72,11 +70,27 @@ Route::middleware('mock.auth')->group(function () {
             ));
             return response()->json(['success' => true]);
         });
+
+        // Global Settings & Events (Command Center)
+        Route::get('/global-settings', [\App\Http\Controllers\GroupContentController::class, 'getSettings']);
+        Route::post('/global-settings', [\App\Http\Controllers\GroupContentController::class, 'updateSetting']);
+        Route::post('/global-settings/upload', [\App\Http\Controllers\GroupContentController::class, 'uploadFile']);
+        Route::get('/global-events', [\App\Http\Controllers\GroupContentController::class, 'listEvents']);
+        Route::post('/global-events', [\App\Http\Controllers\GroupContentController::class, 'storeEvent']);
+
+        // User Management (Global Admin)
+        Route::get('/global-users', [\App\Http\Controllers\UserController::class, 'index']);
+        Route::post('/global-users', [\App\Http\Controllers\UserController::class, 'store']);
+        Route::get('/tenants', function () {
+            return response()->json(\App\Models\Tenant::all());
+        });
     });
 });
 
 // Public API
 Route::prefix('v1')->group(function () {
+    Route::get('/public/settings', [\App\Http\Controllers\GroupContentController::class, 'getSettings']);
+    Route::get('/public/events', [\App\Http\Controllers\GroupContentController::class, 'listEvents']);
     Route::get('/public/jobs', [\App\Http\Controllers\JobPostingController::class, 'publicIndex']);
     Route::get('/public/jobs/{id}', [\App\Http\Controllers\JobPostingController::class, 'publicShow']);
     Route::post('/apply', [\App\Http\Controllers\JobApplicationController::class, 'store']);

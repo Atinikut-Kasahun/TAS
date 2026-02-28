@@ -281,6 +281,22 @@ export default function TADashboard({ user, activeTab: initialTab, onLogout }: {
         }
     };
 
+    const handleToggleJobStatus = async (jobId: string, newStatus: string) => {
+        setActionLoading(true);
+        try {
+            await apiFetch(`/v1/jobs/${jobId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus }),
+            });
+            fetchData();
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     return (
         <div className="space-y-6 pb-20">
             {/* Connection error banner */}
@@ -352,23 +368,25 @@ export default function TADashboard({ user, activeTab: initialTab, onLogout }: {
                         const tabLabels: { [key: string]: string } = {
                             'Candidates': 'Candidates',
                             'Jobs': 'Jobs',
-                            'HiringPlan': 'Hiring Plan',
+                            'HiringPlan': 'Salary & Hiring',
                             'Employees': 'Employees',
                             'Reports': 'Reports',
                         };
                         const subLabels: { [key: string]: string } = {
-                            'NEW': 'New Applications',
-                            'INTERVIEWS': 'Interview Stage',
-                            'OFFERS': 'Offer Stage',
+                            'NEW': 'New',
+                            'INTERVIEWS': 'Interviews',
+                            'OFFERS': 'Offers',
                             'REJECTED': 'Rejected',
-                            'HIRED': 'Hired Roster',
-                            'ACTIVE': 'Active Jobs',
-                            'ARCHIVED': 'Archived Jobs',
+                            'HIRED': 'Roster',
+                            'ACTIVE': 'Active',
+                            'ARCHIVED': 'Archived',
                             'REQUISITIONS': 'Requisitions',
                             'OVERVIEW': 'Overview',
                         };
                         return (
                             <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                <span className="hover:text-[#1F7A6E] cursor-pointer transition-colors">Sister Companies</span>
+                                <svg className="w-2.5 h-2.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" /></svg>
                                 <span className="text-[#1F7A6E]">Droga Pharma</span>
                                 <svg className="w-2.5 h-2.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" /></svg>
                                 <span>{tabLabels[initialTab] || initialTab}</span>
@@ -435,29 +453,48 @@ export default function TADashboard({ user, activeTab: initialTab, onLogout }: {
                         <table className="w-full text-left">
                             <thead className="bg-[#F9FAFB] border-b border-gray-100">
                                 <tr>
-                                    {['POSITION', 'LOCATION', 'DEPARTMENT', 'STATUS'].map(h => (
+                                    {['POSITION', 'LOCATION', 'DEPARTMENT', 'STATUS', 'ACTIONS'].map(h => (
                                         <th key={h} className="px-8 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">{h}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
                                 {jobs
-                                    .filter((j: any) => subTab === 'ACTIVE' ? j.status === 'active' : j.status === 'archived')
+                                    .filter((j: any) => subTab === 'ACTIVE' ? j.status === 'active' : (j.status === 'archived' || j.status === 'closed'))
                                     .length === 0 ? (
-                                    <tr><td colSpan={4} className="px-8 py-20 text-center text-gray-400 italic text-sm">No {subTab.toLowerCase()} jobs found.</td></tr>
+                                    <tr><td colSpan={5} className="px-8 py-20 text-center text-gray-400 italic text-sm">No {subTab.toLowerCase()} jobs found.</td></tr>
                                 ) : jobs
-                                    .filter((j: any) => subTab === 'ACTIVE' ? j.status === 'active' : j.status === 'archived')
+                                    .filter((j: any) => subTab === 'ACTIVE' ? j.status === 'active' : (j.status === 'archived' || j.status === 'closed'))
                                     .map((job: any) => (
                                         <tr key={job.id} className="hover:bg-gray-50 transition-colors cursor-pointer group">
                                             <td className="px-8 py-6">
                                                 <p className="font-bold text-[#1A2B3D] group-hover:text-[#1F7A6E] transition-colors">{job.title}</p>
                                             </td>
                                             <td className="px-8 py-6 text-sm text-gray-500">{job.location || 'Addis Ababa'}</td>
-                                            <td className="px-8 py-6 text-sm text-gray-500">{job.department || 'General'}</td>
+                                            <td className="px-8 py-6 text-sm text-gray-500">
+                                                {job.department || job.requisition?.department || 'General'}
+                                            </td>
                                             <td className="px-8 py-6">
-                                                <span className={`px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest ${job.status === 'active' ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400'}`}>
+                                                <span className={`px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest ${job.status === 'active' ? 'bg-emerald-50 text-emerald-600' : job.status === 'closed' ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-gray-400'}`}>
                                                     {job.status}
                                                 </span>
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                {job.status === 'active' ? (
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handleToggleJobStatus(job.id, 'closed'); }}
+                                                        className="px-4 py-2 border border-red-200 text-red-600 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-50 transition-all"
+                                                    >
+                                                        Close Job
+                                                    </button>
+                                                ) : job.status === 'closed' ? (
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handleToggleJobStatus(job.id, 'active'); }}
+                                                        className="px-4 py-2 border border-emerald-200 text-emerald-600 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-50 transition-all"
+                                                    >
+                                                        Re-open
+                                                    </button>
+                                                ) : null}
                                             </td>
                                         </tr>
                                     ))}

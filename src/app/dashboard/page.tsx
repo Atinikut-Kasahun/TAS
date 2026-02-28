@@ -48,14 +48,20 @@ function DashboardContent() {
         router.push('/');
     };
 
-    if (!ready || !user) return <LoadingScreen />;
-
     const roleSlug: string = (() => {
-        const roles = user.roles;
+        const roles = user?.roles;
         if (!roles || roles.length === 0) return 'ta_manager';
         const first = roles[0];
         return (typeof first === 'string' ? first : first?.slug || first?.name || 'ta_manager').toLowerCase();
     })();
+
+    useEffect(() => {
+        if (ready && user && roleSlug === 'admin') {
+            router.push('/admin/dashboard');
+        }
+    }, [ready, user, roleSlug, router]);
+
+    if (!ready || !user) return <LoadingScreen />;
 
     return (
         <div className="min-h-screen bg-[#F5F6FA]">

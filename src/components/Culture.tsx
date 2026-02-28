@@ -2,15 +2,47 @@
 
 import { motion } from "framer-motion";
 
-const culturePoints = [
-    { text: "Flexible work arrangements with remote options", detail: "Work from anywhere in the world." },
-    { text: "Comprehensive health benefits & wellness", detail: "We take care of your physical and mental health." },
-    { text: "Professional development budget", detail: "$2,500 annual budget for your growth." },
+import { useEffect, useState } from "react";
+import { API_URL } from "@/lib/api";
+
+const defaultCulturePoints = [
+    { heading: "Continuous Growth", text: "We invest heavily in the professional development of our team members." },
+    { heading: "Inclusive Environment", text: "Diversity is our strength. We welcome talent from all backgrounds." },
+    { heading: "Health & Wellness", text: "Comprehensive benefits to keep you and your family healthy." }
 ];
 
-export default function Culture() {
+export default function Culture({ settings }: { settings?: any }) {
+    const [cultureText, setCultureText] = useState({
+        heading: "Life at Droga Group",
+        bullets: defaultCulturePoints
+    });
+    const [cultureImages, setCultureImages] = useState({ img1: '', img2: '', img3: '' });
+    const [teamDiversity, setTeamDiversity] = useState([
+        { label: 'Addis Ababa', value: 45 },
+        { label: 'Dire Dawa', value: 20 },
+        { label: 'Hawassa', value: 35 }
+    ]);
+
+    useEffect(() => {
+        if (settings?.site_culture_text) {
+            try { setCultureText(JSON.parse(settings.site_culture_text)); } catch (e) { }
+        }
+        if (settings?.site_culture_images) {
+            try { setCultureImages(JSON.parse(settings.site_culture_images)); } catch (e) { }
+        }
+        if (settings?.site_team_diversity) {
+            try { setTeamDiversity(JSON.parse(settings.site_team_diversity)); } catch (e) { }
+        }
+    }, [settings]);
+
+    const getImageUrl = (path: string, fallback: string) => {
+        if (!path) return fallback;
+        if (path.startsWith('http')) return path;
+        return `${API_URL.split('/api')[0]}/storage/${path}`;
+    };
+
     return (
-        <section className="py-24 bg-cream/50" id="culture">
+        <section className="py-24 bg-cream/50" id="about-us">
             <div className="max-w-7xl mx-auto px-8 grid grid-cols-2 gap-24 items-center">
                 {/* Left Text */}
                 <motion.div
@@ -21,10 +53,10 @@ export default function Culture() {
                 >
                     <span className="text-accent font-bold text-xs uppercase tracking-widest mb-6 block">Our DNA</span>
                     <h2 className="text-5xl font-bold text-primary mb-6">
-                        Our Culture
+                        {cultureText.heading}
                     </h2>
                     <div className="space-y-8">
-                        {culturePoints.map((point, i) => (
+                        {cultureText.bullets.map((point: any, i) => (
                             <motion.div
                                 key={i}
                                 initial={{ opacity: 0, y: 10 }}
@@ -36,8 +68,8 @@ export default function Culture() {
                                 <div className="flex items-start gap-5">
                                     <span className="flex-shrink-0 w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center text-accent text-xs font-bold mt-1 group-hover:bg-accent group-hover:text-white transition-colors">•</span>
                                     <div>
-                                        <p className="text-primary text-xl font-bold mb-1">{point.text}</p>
-                                        <p className="text-primary/50 text-sm font-medium">{point.detail}</p>
+                                        <p className="text-primary text-xl font-bold mb-1">{point.heading || point.text}</p>
+                                        <p className="text-primary/50 text-sm font-medium">{point.text || point.detail}</p>
                                     </div>
                                 </div>
                             </motion.div>
@@ -58,8 +90,7 @@ export default function Culture() {
                         whileHover={{ scale: 1.02 }}
                         className="rounded-2xl overflow-hidden"
                         style={{
-                            backgroundImage:
-                                "url('https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=600&q=80')",
+                            backgroundImage: `url('${getImageUrl(cultureImages.img1, "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=600&q=80")}')`,
                             backgroundSize: "cover",
                             backgroundPosition: "center",
                         }}
@@ -69,8 +100,7 @@ export default function Culture() {
                         whileHover={{ scale: 1.02 }}
                         className="rounded-2xl overflow-hidden"
                         style={{
-                            backgroundImage:
-                                "url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80')",
+                            backgroundImage: `url('${getImageUrl(cultureImages.img2, "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80")}')`,
                             backgroundSize: "cover",
                             backgroundPosition: "center",
                         }}
@@ -80,8 +110,7 @@ export default function Culture() {
                         whileHover={{ scale: 1.02 }}
                         className="rounded-2xl overflow-hidden"
                         style={{
-                            backgroundImage:
-                                "url('https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=600&q=80')",
+                            backgroundImage: `url('${getImageUrl(cultureImages.img3, "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=600&q=80")}')`,
                             backgroundSize: "cover",
                             backgroundPosition: "center",
                         }}
@@ -106,24 +135,19 @@ export default function Culture() {
 
                         {/* Animated Bar Chart */}
                         <div className="space-y-6">
-                            {[
-                                { region: "North America", pct: "45%", color: "bg-primary" },
-                                { region: "Europe", pct: "30%", color: "bg-accent" },
-                                { region: "Asia Pacific", pct: "15%", color: "bg-accent/40" },
-                                { region: "Remote Hubs", pct: "10%", color: "bg-primary/20" },
-                            ].map((row, i) => (
+                            {teamDiversity.map((row, i) => (
                                 <div key={i} className="space-y-2">
                                     <div className="flex justify-between text-[10px] font-bold text-primary/60 uppercase tracking-widest">
-                                        <span>{row.region}</span>
-                                        <span>{row.pct}</span>
+                                        <span>{row.label}</span>
+                                        <span>{row.value}%</span>
                                     </div>
                                     <div className="h-2 w-full bg-cream rounded-full overflow-hidden">
                                         <motion.div
                                             initial={{ width: 0 }}
-                                            whileInView={{ width: row.pct }}
+                                            whileInView={{ width: row.value + '%' as any }}
                                             viewport={{ once: false }}
                                             transition={{ duration: 1, delay: 0.5 + (i * 0.1) }}
-                                            className={`h-full ${row.color} rounded-full`}
+                                            className={`h-full ${i % 2 === 0 ? 'bg-primary' : 'bg-accent'} rounded-full`}
                                         />
                                     </div>
                                 </div>

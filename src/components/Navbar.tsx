@@ -9,12 +9,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface User {
     name: string;
     roles?: any[];
+    tenant?: {
+        name: string;
+    };
 }
 
 export default function Navbar({ user, onLogout }: { user: User; onLogout: () => void }) {
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const activeTabParam = searchParams.get('tab'); // e.g. "Jobs", "Candidates"
+    const activeTabParam = searchParams.get('tab') || 'Jobs'; // Default to Jobs if no tab is provided
 
     const roleSlug = (() => {
         const roles = user.roles;
@@ -30,13 +33,20 @@ export default function Navbar({ user, onLogout }: { user: User; onLogout: () =>
                     { label: 'JOBS', href: '/dashboard?tab=Jobs' },
                     { label: 'HIRING PLAN', href: '/dashboard?tab=HiringPlan' },
                 ];
+            case 'admin':
+                return [
+                    { label: 'COMMAND CENTER', href: '/admin/dashboard' },
+                    { label: 'CONTENT', href: '/admin/contents' },
+                    { label: 'JOBS (ALL)', href: '/dashboard?tab=Jobs' },
+                    { label: 'HIRING PLAN', href: '/dashboard?tab=HiringPlan' },
+                ];
             case 'hr_manager':
                 return [
                     { label: 'JOBS', href: '/dashboard?tab=Jobs' },
                     { label: 'HIRING PLAN', href: '/dashboard?tab=HiringPlan' },
                     { label: 'REPORTS', href: '/dashboard?tab=Reports' },
                 ];
-            default: // TA Team / Admin
+            default: // TA Team
                 return [
                     { label: 'JOBS', href: '/dashboard?tab=Jobs' },
                     { label: 'CANDIDATES', href: '/dashboard?tab=Candidates' },
@@ -172,7 +182,7 @@ export default function Navbar({ user, onLogout }: { user: User; onLogout: () =>
         <nav className="bg-[#1A2B3D] h-16 px-8 flex items-center justify-between shadow-lg sticky top-0 z-[100]">
             <div className="flex items-center gap-12">
                 {/* Logo */}
-                <Link href="/dashboard" className="flex items-center gap-2 group">
+                <Link href={roleSlug === 'admin' ? "/admin/dashboard" : "/dashboard"} className="flex items-center gap-2 group">
                     <div className="bg-white text-[#1A2B3D] w-8 h-8 rounded flex items-center justify-center font-black text-xl">D</div>
                     <span className="text-white font-black text-xl tracking-tighter group-hover:text-teal-400 transition-colors">DROGA</span>
                 </Link>
@@ -489,7 +499,9 @@ export default function Navbar({ user, onLogout }: { user: User; onLogout: () =>
                     </div>
                     <div className="text-right flex flex-col items-end">
                         <p className="text-[10px] font-black text-white leading-none mb-1">{user.name}</p>
-                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Droga Pharma</p>
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">
+                            {user.tenant?.name || (roleSlug === 'admin' ? 'Droga Group' : 'Droga Pharma')}
+                        </p>
                     </div>
 
                     {/* Logout Tooltip/Dropdown Placeholder */}

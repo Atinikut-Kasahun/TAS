@@ -10,7 +10,8 @@
     }
 
     body {
-        @apply text-secondary bg-cream;
+        color: theme('colors.workableGray.900');
+        background-color: theme('colors.workableGray.50');
         -webkit-font-smoothing: antialiased;
     }
 }

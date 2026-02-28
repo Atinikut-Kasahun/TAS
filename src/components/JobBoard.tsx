@@ -2,13 +2,34 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { API_URL } from '@/lib/api';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-const jobCategories = ["All Departments", "Engineering", "Design", "Product", "Operations", "Sales"];
+const defaultCategories = ["All Departments", "Engineering", "Design", "Product", "Operations", "Sales"];
+const ITEMS_PER_PAGE = 9;
 
-export default function JobBoard() {
+export default function JobBoard({ settings }: { settings?: any }) {
+    // Dynamic categories from settings, fall back to default if not available
+    const [jobCategories, setJobCategories] = useState<string[]>(["All Departments"]);
     const [activeCategory, setActiveCategory] = useState("All Departments");
     const [jobs, setJobs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+
+    React.useEffect(() => {
+        if (settings?.site_job_departments) {
+            try {
+                const dynamicDepts = JSON.parse(settings.site_job_departments);
+                if (Array.isArray(dynamicDepts)) {
+                    setJobCategories(["All Departments", ...dynamicDepts]);
+                }
+            } catch (e) {
+                console.error("Failed to parse dynamic job departments", e);
+                setJobCategories(defaultCategories);
+            }
+        } else {
+            setJobCategories(defaultCategories);
+        }
+    }, [settings]);
 
     React.useEffect(() => {
         const fetchJobs = async () => {
@@ -35,8 +56,20 @@ export default function JobBoard() {
         ? jobs
         : jobs.filter(job => job.department === activeCategory);
 
+    // Pagination Logic
+    const totalPages = Math.ceil(filteredJobs.length / ITEMS_PER_PAGE);
+    const paginatedJobs = filteredJobs.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+
+    // Reset page to 1 when category changes
+    React.useEffect(() => {
+        setCurrentPage(1);
+    }, [activeCategory]);
+
     return (
-        <section className="py-24 bg-white" id="positions">
+        <section className="py-24 bg-white" id="jobs">
             <div className="max-w-7xl mx-auto px-8">
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-8">
                     <motion.div
@@ -76,7 +109,7 @@ export default function JobBoard() {
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                 >
                     <AnimatePresence mode='popLayout'>
-                        {filteredJobs.map((job) => (
+                        {paginatedJobs.map((job) => (
                             <motion.div
                                 layout
                                 key={job.id}
@@ -111,6 +144,42 @@ export default function JobBoard() {
                         ))}
                     </AnimatePresence>
                 </motion.div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="mt-16 flex items-center justify-center gap-4">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="w-10 h-10 rounded-full flex items-center justify-center bg-cream text-primary transition-all hover:bg-primary/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <ChevronLeft size={20} />
+                        </button>
+
+                        <div className="flex items-center gap-2">
+                            {Array.from({ length: totalPages }).map((_, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => setCurrentPage(i + 1)}
+                                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all ${currentPage === i + 1
+                                        ? "bg-primary text-white shadow-lg shadow-primary/20"
+                                        : "bg-cream text-primary hover:bg-primary/10"
+                                        }`}
+                                >
+                                    {i + 1}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="w-10 h-10 rounded-full flex items-center justify-center bg-cream text-primary transition-all hover:bg-primary/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <ChevronRight size={20} />
+                        </button>
+                    </div>
+                )}
             </div>
         </section>
     );

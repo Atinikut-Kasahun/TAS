@@ -1,8 +1,70 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import * as LucideIcons from "lucide-react";
 
-export default function Hero() {
+export default function Hero({ settings }: { settings?: any }) {
+    // Dynamic Hero Stats Badge State
+    const [heroStats, setHeroStats] = useState({
+        title: "Training Hours",
+        value: "1,200+",
+        icon: "BookOpen"
+    });
+
+    // Mock Dashboard Stats State
+    const [mockStats, setMockStats] = useState({
+        rating: "4.8",
+        members: "500+"
+    });
+
+    const [teamDiversity, setTeamDiversity] = useState([
+        { label: 'Addis Ababa', value: 45 },
+        { label: 'Dire Dawa', value: 20 },
+        { label: 'Hawassa', value: 35 }
+    ]);
+
+    // Content Settings State (Existing)
+    const [content, setContent] = useState({
+        title: "Build the Future with Droga Group",
+        subtitle: "Join a team of innovators, creators, and problem-solvers who are redefining what's possible in technology."
+    });
+
+    useEffect(() => {
+        // Read the hero_stats from the parent props
+        if (settings?.site_hero_stats) {
+            try {
+                setHeroStats(JSON.parse(settings.site_hero_stats));
+            } catch (e) { }
+        }
+
+        if (settings?.site_hero_mock_stats) {
+            try {
+                setMockStats(JSON.parse(settings.site_hero_mock_stats));
+            } catch (e) { }
+        }
+
+        if (settings?.site_team_diversity) {
+            try {
+                setTeamDiversity(JSON.parse(settings.site_team_diversity));
+            } catch (e) { }
+        }
+
+        // This is safe to keep just in case, though the parent could technically pass it now
+        if (settings?.hero_content) {
+            try {
+                setContent(JSON.parse(settings.hero_content));
+            } catch (e) {
+                setContent(settings.hero_content); // Fallback for raw string objects
+            }
+        }
+    }, [settings]);
+
+    // Dynamically select the icon from Lucide
+    const IconComponent = (LucideIcons as any)[heroStats.icon] || LucideIcons.BookOpen;
+
+    // Removing local fetch, relying on parent props
+
     return (
         <section className="min-h-[85vh] flex items-center bg-gradient-to-br from-[#F8FAFC] to-[#EFF6FF] pt-20">
             <div className="max-w-7xl mx-auto px-8 grid grid-cols-2 gap-16 items-center py-16">
@@ -12,13 +74,9 @@ export default function Hero() {
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-                        className="text-6xl font-black leading-[1.1] text-[#1A2B3D] mb-6"
+                        className="text-6xl font-black leading-[1.1] text-[#1A2B3D] mb-6 whitespace-pre-line"
                     >
-                        Build the Future <br />
-                        with <span className="relative">
-                            <span className="relative z-10 text-[#1F7A6E]">Droga Group</span>
-                            <span className="absolute bottom-2 left-0 w-full h-4 bg-[#F2F44D]/30 -z-0"></span>
-                        </span>
+                        {content.title}
                     </motion.h1>
 
                     <motion.p
@@ -27,9 +85,9 @@ export default function Hero() {
                         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
                         className="text-lg text-gray-500 font-medium leading-relaxed mb-12 max-w-xl"
                     >
-                        Join a team of innovators, creators, and problem-solvers who are
-                        redefining what&apos;s possible in technology.
+                        {content.subtitle}
                     </motion.p>
+
 
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -95,22 +153,24 @@ export default function Hero() {
                         </div>
                         <div className="flex-1 grid grid-cols-2 gap-4 p-4 mt-2">
                             <div className="bg-accent/5 rounded-2xl p-4 flex flex-col justify-between">
-                                <div className="text-[10px] font-bold text-accent uppercase tracking-wider">Hired This Month</div>
-                                <div className="text-3xl font-bold text-primary">12</div>
+                                <div className="text-[10px] font-bold text-accent uppercase tracking-wider">Average Rating</div>
+                                <div className="text-3xl font-bold text-primary">{mockStats.rating}<span className="text-lg text-primary/40">/5</span></div>
                             </div>
                             <div className="bg-primary/5 rounded-2xl p-4 flex flex-col justify-between">
-                                <div className="text-[10px] font-bold text-primary/40 uppercase tracking-wider">New Applicants</div>
-                                <div className="text-3xl font-bold text-primary text-primary/60">48</div>
+                                <div className="text-[10px] font-bold text-primary/40 uppercase tracking-wider">Team Members</div>
+                                <div className="text-3xl font-bold text-primary text-primary/60">{mockStats.members}</div>
                             </div>
                             <div className="col-span-2 bg-cream rounded-2xl p-4 flex flex-col gap-3">
                                 <div className="flex items-center justify-between">
-                                    <div className="text-[10px] font-bold text-primary/40 uppercase tracking-wider">Top Skills Found</div>
-                                    <div className="text-[10px] font-bold text-accent">View Report</div>
+                                    <div className="text-[10px] font-bold text-primary/40 uppercase tracking-wider">Scale & Reach</div>
+                                    <div className="text-[10px] font-bold text-accent">{teamDiversity.length} Locations</div>
                                 </div>
-                                <div className="flex gap-2">
-                                    <div className="px-3 py-1 rounded-full bg-white text-[10px] font-bold text-primary border border-primary/5">React</div>
-                                    <div className="px-3 py-1 rounded-full bg-white text-[10px] font-bold text-primary border border-primary/5">TypeScript</div>
-                                    <div className="px-3 py-1 rounded-full bg-white text-[10px] font-bold text-primary border border-primary/5">AI</div>
+                                <div className="flex gap-2 flex-wrap">
+                                    {teamDiversity.map((item, idx) => (
+                                        <div key={idx} className="px-3 py-1 rounded-full bg-white text-[10px] font-bold text-primary border border-primary/5">
+                                            {item.label}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -124,12 +184,12 @@ export default function Hero() {
                         transition={{ duration: 0.8, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
                         className="absolute -top-6 -right-6 bg-white shadow-2xl rounded-2xl px-6 py-4 flex items-center gap-4 border border-primary/5"
                     >
-                        <div className="w-11 h-11 bg-accent/10 rounded-full flex items-center justify-center text-accent text-xl font-bold">
-                            📈
+                        <div className="w-11 h-11 bg-accent/10 rounded-full flex items-center justify-center text-[#0D3B34] font-bold">
+                            <IconComponent strokeWidth={1.5} size={24} />
                         </div>
                         <div>
-                            <p className="text-[10px] text-primary/40 font-bold uppercase tracking-wider">Growth Pace</p>
-                            <p className="text-lg font-bold text-primary">+150% YoY</p>
+                            <p className="text-[10px] text-primary/40 font-bold uppercase tracking-wider">{heroStats.title}</p>
+                            <p className="text-lg font-bold text-primary">{heroStats.value}</p>
                         </div>
                     </motion.div>
                 </motion.div>

@@ -8,15 +8,38 @@ import JobBoard from "@/components/JobBoard";
 import Impact from "@/components/Impact";
 import Footer from "@/components/Footer";
 
+import { useEffect, useState } from "react";
+import { apiFetch } from "@/lib/api";
+
 export default function Home() {
+    const [settings, setSettings] = useState<any>({});
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                // Ensure this is hitting the public endpoint
+                const data = await apiFetch('/v1/public/settings');
+                setSettings(data || {});
+            } catch (error) {
+                console.error("Failed to load settings:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchSettings();
+    }, []);
+
+    if (loading) return null; // Or a subtle skeleton loader
+
     return (
         <main>
             <Header />
-            <Hero />
+            <Hero settings={settings} />
             <Features />
-            <Culture />
-            <JobBoard />
-            <Impact />
+            <Culture settings={settings} />
+            <JobBoard settings={settings} />
+            <Impact settings={settings} />
             <Footer />
         </main>
     );
